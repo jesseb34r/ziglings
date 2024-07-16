@@ -10,3 +10,6 @@
 # zig exe
 lib
 zig
+
+# MACOS
+.DS_STORE
