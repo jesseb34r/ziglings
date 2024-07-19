@@ -192,8 +192,8 @@ const TripItem = union(enum) {
             // Oops! The hermit forgot how to capture the union values
             // in a switch statement. Please capture both values as
             // 'p' so the print statements work!
-            .place => print("{s}", .{p.name}),
-            .path => print("--{}->", .{p.dist}),
+            .place => print("{s}", .{self.place.name}),
+            .path => print("--{}->", .{self.path.dist}),
         }
     }
 };
@@ -238,25 +238,23 @@ const HermitsNotebook = struct {
 
     // We'll often want to find an entry by Place. If one is not
     // found, we return null.
+    // Here's where the hermit got stuck. We need to return
+    // an optional pointer to a NotebookEntry.
+    //
+    // What we have with "entry" is the opposite: a pointer to
+    // an optional NotebookEntry!
+    //
+    // To get one from the other, we need to dereference
+    // "entry" (with .*) and get the non-null value from the
+    // optional (with .?) and return the address of that. The
+    // if statement provides some clues about how the
+    // dereference and optional value "unwrapping" look
+    // together. Remember that you return the address with the
+    // "&" operator.
     fn getEntry(self: *HermitsNotebook, place: *const Place) ?*NotebookEntry {
         for (&self.entries, 0..) |*entry, i| {
             if (i >= self.end_of_entries) break;
-
-            // Here's where the hermit got stuck. We need to return
-            // an optional pointer to a NotebookEntry.
-            //
-            // What we have with "entry" is the opposite: a pointer to
-            // an optional NotebookEntry!
-            //
-            // To get one from the other, we need to dereference
-            // "entry" (with .*) and get the non-null value from the
-            // optional (with .?) and return the address of that. The
-            // if statement provides some clues about how the
-            // dereference and optional value "unwrapping" look
-            // together. Remember that you return the address with the
-            // "&" operator.
-            if (place == entry.*.?.place) return entry;
-            // Try to make your answer this long:__________;
+            if (place == entry.*.?.place) return &entry.*.?;
         }
         return null;
     }
@@ -309,7 +307,7 @@ const HermitsNotebook = struct {
     //
     // Looks like the hermit forgot something in the return value of
     // this function. What could that be?
-    fn getTripTo(self: *HermitsNotebook, trip: []?TripItem, dest: *Place) void {
+    fn getTripTo(self: *HermitsNotebook, trip: []?TripItem, dest: *Place) TripError!void {
         // We start at the destination entry.
         const destination_entry = self.getEntry(dest);
 
